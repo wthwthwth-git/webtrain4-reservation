@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    username: root
+    password: wth784153269
+    url: jdbc:mysql://localhost:3306/webtrain4?useSSL=false&serverTimezone=Asia/Tokyo&allowPublicKeyRetrieval=true&allowMultiQueries=true
+    driver-class-name: com.mysql.jdbc.Driver
+
+
+mybatis:
+  type-aliases-package: com.wth.train.pojo
+  mapper-locations: classpath:mybatis/mapper/*.xml

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<html lang="en" xmlns:th="http://www.thymelef.org">
+<head>
+    <meta charset="UTF-8">
+    <title>error</title>
+    <style>
+        a{
+            text-decoration: none;
+        }
+        a:hover{
+            background: aquamarine;
+        }
+    </style>
+</head>
+<body>
+<p style="color: red">[[${error}]],エラーが出ています</p>
+<p style="color: red">もう一度操作しください</p>
+<a th:href="@{/guide}">会議室一覧へ</a>
+</body>
+</html>

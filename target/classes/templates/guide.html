@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymelef.org">
+<head>
+    <meta charset="UTF-8">
+    <title>guide</title>
+    <script th:src="@{/js/jquery-3.5.1.js}"></script>
+    <style>
+        div{
+            margin: 15px;
+        }
+        a{
+            text-decoration: none;
+        }
+        a:hover{
+            background: aquamarine;
+        }
+        #logout{
+            border: 1px solid gray;
+            border-radius: 3px 3px 3px 3px;
+        }
+    </style>
+</head>
+<body>
+
+<div>
+    <a th:href="@{/guide(dateChange=-1)}">＜前日</a>
+    <span>[[${roomDate}]]の会議室</span>
+    <a th:href="@{/guide(dateChange=1)}">翌日＞</a><br>
+</div>
+
+<div th:each="room:${rooms}">
+    <div>
+        <a  th:href="@{/toreservable(date=${roomDate},roomId=${room.roomId})}">● [[${room.roomName}]]</a>
+    </div>
+</div>
+<div>
+    <a th:href="@{/logout}" id="logout">ログアウト</a>
+</div>
+
+</body>
+</html>
+

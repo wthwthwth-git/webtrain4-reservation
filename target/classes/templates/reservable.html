@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymelef.org">
+<head>
+    <meta charset="UTF-8">
+    <title>reservable</title>
+    <script th:src="@{/js/jquery-3.5.1.js}"></script>
+    <style>
+        div{
+            margin:15px;border:0;padding:0;
+        }
+        a{
+            text-decoration: none;
+        }
+        a:hover{
+            background: aquamarine;
+        }
+        th,td{
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+<script type="text/javascript" th:inline="javascript">
+    $.extend({
+        compare:function (a,b) {
+            var startTimeArr = [];
+            var endTimeArr = [];
+            var timeE = '', timeS = '';
+            startTimeArr.push(a);
+            endTimeArr.push(b);
+
+            for (var i = 0, len = $('.startTime').length; i < len; i++) {
+                timeS = $('.startTime').eq(i).text();
+                if(timeS==a){
+                    return true;
+                }
+                startTimeArr.push(timeS);
+            }
+            for (var j = 0, len = $('.endTime').length; j < len; j++) {
+                timeE = $('.endTime').eq(j).text();
+                endTimeArr.push(timeE);
+            }
+            var begin = startTimeArr.sort();
+            var over = endTimeArr.sort();
+            for(var k=1; k < begin.length; k++){
+                    if (begin[k] < over[k-1]) {
+                        return true;
+                        break;
+                    }
+                }
+        }
+    });
+    $(function () {
+        var changeDate=[[${session.changeDate}]]
+        if(changeDate<0){
+            $("#reservationSubmit").hide()
+            $(".operating").hide()
+            $("#startTime").attr("disabled","disabled")
+            $("#endTime").attr("disabled","disabled")
+        }
+        var roleName=[[${session.usr.getRoleName()}]]
+        var firstName=[[${session.usr.getFirstName()}]]
+        if(roleName=="member") {
+            $(".canel").hide();
+        }else {
+            $(".canel").show();
+        }
+
+        for(var i = 0, len = $('.canel').length; i < len; i++){
+                if(firstName==$('.firstName').eq(i).text()){
+                    $('.canel').eq(i).show();
+                }
+        }
+
+        $("#startTime").change(
+            function () {
+                for(var i = 0, len = $('.endList').length; i < len; i++){
+                    if($('.queryStartTime option:selected').val()>=$('.endList').eq(i).val()){
+                        $('.endList').eq(i).attr("hidden","true");
+                    }else{
+                        $('.endList').eq(i).removeAttr("hidden");
+                    }
+                }
+                let selectedIndex = $('.queryStartTime').get(0).selectedIndex;
+                $('.queryEndTime').get(0).selectedIndex=selectedIndex;
+            }
+        )
+        $("#endTime").change(
+            function() {
+                let val = $('.queryStartTime option:selected').val();
+                let val1 = $('.queryEndTime option:selected').val();
+                let b = $.compare(val,val1);
+                if(b==true){
+                    alert("選択時間帯内予約がありました！！！");
+                    // indexで　はじめと終わり時間が　同じに設定する
+                    let selectedIndex = $('.queryStartTime').get(0).selectedIndex;
+                    $('.queryEndTime').get(0).selectedIndex=selectedIndex;
+                }
+            }
+        )
+        $("#reservationSubmit").click(function () {
+            if ($('.queryStartTime option:selected').val() === $('.queryEndTime option:selected').val()) {
+                alert("予約時間が選択してください");
+                $("#reservationSubmit").attr("type","button");
+            }else {
+                $("#reservationSubmit").removeAttr("type");
+            }
+        })
+
+    })
+
+</script>
+<div>
+    <a th:href="@{/guide}">会議室一覧へ</a>
+</div>
+<div>
+
+    <form th:action="@{/add}" method="post">
+        <div>
+        <input type="hidden" name="reservationId">
+        <input type="hidden" name="roomId" th:value="${roomId}">
+        会議室：<span>[[${roomName}]]</span>
+        </div>
+        <div>
+        <input type="hidden" name="userId" th:value="${session.usr.getUserId()}">
+        予約者名：<span>[[${session.usr.getFirstName()}]]</span>
+        </div>
+        <div>
+        <input type="hidden" name="reservedDate" th:value="${reservedDate}">
+        日付：<span>[[${reservedDate}]]</span>
+        </div>
+        <div>
+        時間帯：<select name="startTime" id="startTime" class="queryStartTime">
+                <option th:each="time:${startTimeList}" th:text="${time}" class="startList"/>
+                </select>
+                -<select name="endTime" id="endTime" class="queryEndTime">
+                <option th:each="time:${endTimeList}" th:text="${time}" class="endList"/>
+                </select>
+        </div>
+        <div>
+                <button id="reservationSubmit">予約</button>
+        </div>
+    </form>
+</div>
+<div>
+    <table border="1" cellpadding="0" cellspacing="0" >
+        <tr>
+            <th colspan="3">時間帯</th>
+            <th>予約者</th>
+            <th class="operating">操作</th>
+        </tr>
+        <tr th:each="sumBean:${sumBeanList}">
+            <td class="startTime" style="border-right:none;">[[${#dates.format(sumBean.getReservation().getStartTime(),'HH:mm')}]]</td>
+            <td style="border-right:none;border-left:none;">-</td>
+            <td class="endTime" style="border-left:none;">[[${#dates.format(sumBean.getReservation().getEndTime(),'HH:mm')}]]</td>
+            <td class="firstName" th:text="${sumBean.getUsr().getFirstName()}"></td>
+            <td class="operating"><a  class="canel" th:href="@{/cancel(reservationId=${sumBean.getReservation().getReservationId()},date=${#dates.format(sumBean.getReservation().getReservedDate(),'yyyy/MM/dd')},roomId=${sumBean.getReservation().getRoomId()})}">取消</a></td>
+        </tr>
+    </table>
+</div>
+</body>
+</html>

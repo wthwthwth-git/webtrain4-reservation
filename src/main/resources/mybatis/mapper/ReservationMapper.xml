@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wth.train.dao.ReservationMapper">
+
+    <resultMap id="getRoom" type="com.wth.train.pojo.MeetingRoom">
+        <result column="room_id" property="roomId"/>
+        <result column="room_name" property="roomName"/>
+    </resultMap>
+<!--    会議室のlistを検索する-->
+    <select id="getMeetingRoom" resultMap="getRoom" resultType="MeetingRoom">
+        SELECT meeting_room.room_id,meeting_room.room_name
+        FROM meeting_room
+        LEFT JOIN reservable_room
+        ON meeting_room.room_id=reservable_room.room_id
+        where reservable_room.reserved_date=#{reservedDate}
+    </select>
+
+    <resultMap id="sumbean" type="com.wth.train.pojo.SumBean">
+        <association property="usr" javaType="Usr">
+            <result column="bui" property="userId"/>
+            <result column="bfn" property="firstName"/>
+            <result column="bln" property="lastName"/>
+            <result column="bp" property="password"/>
+            <result column="brn" property="roleName"/>
+        </association>
+        <association property="reservableRoom" javaType="ReservableRoom">
+            <result column="crd" property="reservedDate"/>
+            <result column="cri" property="roomId"/>
+        </association>
+        <association property="reservation" javaType="Reservation">
+            <result column="aid" property="reservationId"/>
+            <result column="ast" property="startTime"/>
+            <result column="aet" property="endTime"/>
+            <result column="ard" property="reservedDate"/>
+            <result column="ari" property="roomId"/>
+            <result column="aui" property="userId"/>
+        </association>
+        <association property="meetingRoom" javaType="MeetingRoom">
+            <result column="dri" property="roomId"/>
+            <result column="drn" property="roomName"/>
+        </association>
+    </resultMap>
+<!--    合わせた予約メッセージを検索する-->
+    <select id="queryByReservableRoom" resultMap="sumbean">
+        select a.reservation_id aid,a.start_time ast,a.end_time aet,a.reserved_date ard,a.room_id ari,a.user_id aui,
+        b.user_id bui,b.first_name bfn,b.last_name bln,b.password bp,b.role_name brn,
+        c.reserved_date crd,c.room_id cri,
+        d.room_id dri,d.room_name drn
+        from
+        reservation a
+        left Join usr b
+        on a.user_id=b.user_id
+        left join reservable_room c
+        on a.room_id=c.room_id and a.reserved_date=c.reserved_date
+        left join meeting_room d
+        on a.room_id=d.room_id
+        where c.reserved_date=#{reservedDate} and c.room_id=#{roomId}
+        order by a.start_time
+    </select>
+
+<!--    ルームidで、ルーム名を検索する-->
+    <select id="queryRoomName" parameterType="int" resultType="String">
+        select room_name from meeting_room
+        where room_id=#{roomId}
+    </select>
+
+<!--    予約メッセージを削除する-->
+    <delete id="deleteById" parameterType="int">
+        delete  from reservation
+        where reservation_id=#{reservationId};
+        alter table reservation auto_increment=1;
+    </delete>
+
+<!--    予約メッセージを追加する-->
+    <insert id="addReservation" parameterType="Reservation">
+        insert into reservation (reservation_id,start_time,end_time,reserved_date,room_id,user_id)
+        values(#{reservationId},#{startTime},#{endTime},#{reservedDate},#{roomId},#{userId})
+
+    </insert>
+
+</mapper>
